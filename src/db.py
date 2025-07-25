@@ -1,7 +1,12 @@
+import os
 import sqlite3
+from pathlib import Path
+import argparse
 
-# SQLite database file
-DB_FILE = "events.db"
+# Default path for the SQLite database
+DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "database" / "events.db"
+# Allow overriding the database location via environment variable
+DB_FILE = os.environ.get("EVENTS_DB_FILE", str(DEFAULT_DB_PATH))
 
 def connect_db():
     """Connect to the SQLite database and return a connection."""
@@ -121,13 +126,20 @@ def insert_event(category, topic, name, country, date_start, date_end, descripti
     """Insert a new event record into the database."""
     conn = connect_db()
     cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO events 
+    try:
+        cur.execute(
+            """
+        INSERT INTO events
         (category, topic, name, country, date_start, date_end, description, tag, affected_by, affects)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (category, topic, name, country, date_start, date_end, description, tag, affected_by, affects))
-    conn.commit()
-    conn.close()
+        """,
+            (category, topic, name, country, date_start, date_end, description, tag, affected_by, affects),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError as exc:
+        raise ValueError("An event with this tag already exists.") from exc
+    finally:
+        conn.close()
 # --- add below insert_event() -----------------------------------------------
 def update_event(event_id, **fields):
     """
@@ -193,5 +205,20 @@ def add_relation_tag(event_tag, field, related_tag):
     conn.commit()
     conn.close()
 
-# Initialize the database (create tables and seed data on startup)
-init_db()
+def main():
+    """Optional CLI to initialize the database."""
+    parser = argparse.ArgumentParser(description="Manage the events database")
+    parser.add_argument(
+        "--db",
+        default=os.environ.get("EVENTS_DB_FILE", str(DEFAULT_DB_PATH)),
+        help="Path to the SQLite database file",
+    )
+    args = parser.parse_args()
+    global DB_FILE
+    DB_FILE = args.db
+    init_db()
+    print(f"Initialized database at {DB_FILE}")
+
+
+if __name__ == "__main__":
+    main()
