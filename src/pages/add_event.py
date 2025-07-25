@@ -101,10 +101,21 @@ def submit_new_event(n_clicks, category, topic, name, country, date_start, date_
     affected_by_tags = affected_by if affected_by else []
     affects_tags = affects if affects else []
     # Insert the new event into the database
-    db.insert_event(category.strip(), topic.strip(), name.strip(),
-                    (country.strip() if country else ""), date_start, date_end,
-                    (description if description else ""), new_tag,
-                    ",".join(affected_by_tags), ",".join(affects_tags))
+    try:
+        db.insert_event(
+            category.strip(),
+            topic.strip(),
+            name.strip(),
+            (country.strip() if country else ""),
+            date_start,
+            date_end,
+            (description if description else ""),
+            new_tag,
+            ",".join(affected_by_tags),
+            ",".join(affects_tags),
+        )
+    except ValueError as exc:
+        return dash.no_update, str(exc)
     # Update related events in the database to maintain two-way relationships
     for tag in affected_by_tags:
         db.add_relation_tag(tag, "affects", new_tag)

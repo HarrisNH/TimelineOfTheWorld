@@ -1,5 +1,8 @@
+import os
+import argparse
 import dash
 from dash import Dash, html, dcc
+import db
 
 # Initialize Dash app with support for pages
 app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True)
@@ -17,4 +20,10 @@ app.layout = html.Div([
 ])
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run the Dash application")
+    parser.add_argument("--db", help="Path to the database file")
+    args = parser.parse_args()
+    if args.db:
+        os.environ["EVENTS_DB_FILE"] = args.db
+    db.init_db()
     app.run(debug=True)

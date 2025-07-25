@@ -113,33 +113,31 @@ def make_timeline_figure(events, show_arrows=False):
                                        showarrow=True, arrowhead=3, arrowwidth=1, arrowcolor="black", text="")
     return fig
 
-# Prepare initial data for the layout (all events and filter options)
-all_events = db.get_events()
-all_categories = sorted({ev["category"] for ev in all_events})
-all_countries = sorted({ev["country"] for ev in all_events})
-# Compute the overall date range of all events for the date picker defaults
-min_date = min(ev["date_start"] for ev in all_events)
-max_date = max((ev["date_end"] if ev["date_end"] else ev["date_start"]) for ev in all_events)
-# Initial timeline figure (show all events, no arrows by default)
-initial_fig = make_timeline_figure(all_events, show_arrows=False)
+def layout():
+    """Render the timeline page with the latest data."""
+    events = db.get_events()
+    categories = sorted({ev["category"] for ev in events})
+    countries = sorted({ev["country"] for ev in events})
+    min_date = min(ev["date_start"] for ev in events)
+    max_date = max((ev["date_end"] if ev["date_end"] else ev["date_start"]) for ev in events)
+    initial_fig = make_timeline_figure(events, show_arrows=False)
 
-# Layout of the timeline page
-layout = html.Div([
-    html.H2("Timeline View"),
-    # Filter controls section
-    html.Div([
-        html.Label("Category:", style={"margin-right": "8px"}),
-        dcc.Dropdown(
+    return html.Div([
+        html.H2("Timeline View"),
+        # Filter controls section
+        html.Div([
+            html.Label("Category:", style={"margin-right": "8px"}),
+            dcc.Dropdown(
             id="filter-category",
-            options=[{"label": cat, "value": cat} for cat in all_categories],
-            value=all_categories,  # default select all categories
+            options=[{"label": cat, "value": cat} for cat in categories],
+            value=categories,  # default select all categories
             multi=True
         ),
         html.Label(" Country:", style={"margin-left": "20px", "margin-right": "8px"}),
         dcc.Dropdown(
             id="filter-country",
-            options=[{"label": c, "value": c} for c in all_countries],
-            value=all_countries,  # default select all countries
+            options=[{"label": c, "value": c} for c in countries],
+            value=countries,  # default select all countries
             multi=True
         ),
         html.Label(" Date Range:", style={"margin-left": "20px", "margin-right": "8px"}),
