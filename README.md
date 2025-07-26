@@ -8,6 +8,7 @@ This is a small Dash application that displays a timeline of historical events s
    ```bash
    pip install -r requirements.txt
    ```
+   Patch versions are pinned for reproducible test runs.
 2. (Optional) specify a custom database path via the `EVENTS_DB_FILE` environment variable or the `--db` command line option.
 3. Start the server:
    ```bash
