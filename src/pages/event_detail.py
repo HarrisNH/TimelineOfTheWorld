@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc
+from dash import html, dcc, callback, Input, Output
 import db
 
 
@@ -7,11 +7,26 @@ dash.register_page(__name__, path="/event_detail", name="Event Detail")
 
 
 def layout(tag=None, **kwargs):
-    if not tag:
-        return html.Div("No event specified")
-    event = db.get_event_by_tag(tag)
+    events = db.get_events()
+    options = [
+        {"label": e["name"], "value": e["tag"]} for e in events
+    ]
+    event = db.get_event_by_tag(tag) if tag else None
+    selector = html.Div(
+        [
+            html.Label("Select Event:"),
+            dcc.Dropdown(
+                id="event-detail-select",
+                options=options,
+                value=tag,
+                clearable=False,
+            ),
+            dcc.Location(id="event-detail-nav", refresh=True),
+        ],
+        style={"marginBottom": "20px", "maxWidth": "400px"},
+    )
     if not event:
-        return html.Div("Event not found")
+        return html.Div([selector, html.Div("Event not found")])
 
     def make_links(value):
         tags = [t for t in (value or "").split(',') if t]
@@ -23,6 +38,7 @@ def layout(tag=None, **kwargs):
         ]
 
     return html.Div([
+        selector,
         html.H2(event.get("name", "")),
         html.Ul([
             html.Li(f"Category: {event.get('category', '')}"),
@@ -35,3 +51,14 @@ def layout(tag=None, **kwargs):
         html.Div([html.Strong("Affected by: "), *make_links(event.get('affected_by'))]),
         html.Div([html.Strong("Affects: "), *make_links(event.get('affects'))])
     ], style={"marginLeft": "40px", "marginRight": "40px", "maxWidth": "800px"})
+
+
+@callback(
+    Output("event-detail-nav", "href"),
+    Input("event-detail-select", "value"),
+    prevent_initial_call=True,
+)
+def change_event(selected):
+    if not selected:
+        return dash.no_update
+    return f"/event_detail?tag={selected}"
