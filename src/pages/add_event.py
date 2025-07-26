@@ -15,51 +15,54 @@ def layout():
         html.H2("Add New Event"),
         html.Div([
             html.Label("Category:*"),
-            dcc.Input(id="input-category", type="text", placeholder="e.g. Politics", style={"width": "100%"})
-        ], style={"marginBottom": "10px"}),
+            dcc.Input(id="input-category", type="text", placeholder="e.g. Politics", className="full-width")
+        ], className="form-group"),
         html.Div([
             html.Label("Topic:*"),
-            dcc.Input(id="input-topic", type="text", placeholder="e.g. War", style={"width": "100%"})
-        ], style={"marginBottom": "10px"}),
+            dcc.Input(id="input-topic", type="text", placeholder="e.g. War", className="full-width")
+        ], className="form-group"),
         html.Div([
             html.Label("Name:*"),
-            dcc.Input(id="input-name", type="text", placeholder="e.g. World War III", style={"width": "100%"})
-        ], style={"marginBottom": "10px"}),
+            dcc.Input(id="input-name", type="text", placeholder="e.g. World War III", className="full-width")
+        ], className="form-group"),
         html.Div([
             html.Label("Country:"),
-            dcc.Input(id="input-country", type="text", placeholder="e.g. USA", style={"width": "100%"})
-        ], style={"marginBottom": "10px"}),
+            dcc.Input(id="input-country", type="text", placeholder="e.g. USA", className="full-width")
+        ], className="form-group"),
         html.Div([
             html.Label("Start Date:*"),
             dcc.DatePickerSingle(id="input-date-start", display_format="YYYY-MM-DD")
-        ], style={"marginBottom": "10px"}),
+        ], className="form-group"),
         html.Div([
             html.Label("End Date:"),
             dcc.DatePickerSingle(id="input-date-end", display_format="YYYY-MM-DD")
-        ], style={"marginBottom": "10px"}),
+        ], className="form-group"),
         html.Div([
             html.Label("Description:"),
             html.Br(),
-            dcc.Textarea(id="input-description", placeholder="Event description (optional)",
-                         style={"width": "100%", "height": "80px"})
-        ], style={"marginBottom": "10px"}),
+            dcc.Textarea(
+                id="input-description",
+                placeholder="Event description (optional)",
+                className="textarea",
+            ),
+        ], className="form-group"),
         html.Div([
             html.Label("Affected By (select events that cause this event):"),
             dcc.Dropdown(id="input-affected-by", options=cast(Any, event_options),multi=True,
                          placeholder="Select preceding related events")
-        ], style={"marginBottom": "10px"}),
+        ], className="form-group"),
         html.Div([
             html.Label("Affects (select events that this event will cause):"),
             dcc.Dropdown(id="input-affects", options=cast(Any, event_options), multi=True,
                          placeholder="Select subsequent related events")
-        ], style={"marginBottom": "20px"}),
+        ], className="form-group"),
         # Submit button
         html.Button("Add Event", id="submit-event", n_clicks=0),
         # Hidden location component for redirecting after submission
         dcc.Location(id="redirect-page", href="", refresh=False),
         # Message area for errors or confirmations
-        html.Div(id="form-message", style={"color": "red", "marginTop": "10px"})
-    ])
+        html.Div(id="form-message", className="message")
+    ], className="page-container")
 
 @callback(
     Output("redirect-page", "href"),
