@@ -158,8 +158,15 @@ def layout():
         )
     ], className="filter-controls"),
     # Timeline graph component
+<<<<<<< HEAD
+    dcc.Graph(id="timeline-graph", figure=initial_fig),
+    # hidden location for navigating to event detail when a point is clicked
+    dcc.Location(id="event-detail-nav", href="", refresh=False)
+], className="page-container")
+=======
     dcc.Graph(id="timeline-graph", figure=initial_fig)
 ], className="page-container")
+>>>>>>> origin/main
 
 # Callback to update the timeline graph when filters or arrow toggle change
 @callback(
@@ -184,3 +191,21 @@ def update_timeline(selected_categories, selected_countries, start_date, end_dat
     # Generate updated figure
     fig = make_timeline_figure(filtered_events, show_arrows=show_arrows)
     return fig
+<<<<<<< HEAD
+
+
+@callback(
+    Output("event-detail-nav", "href"),
+    Input("timeline-graph", "clickData"),
+    prevent_initial_call=True
+)
+def go_to_detail(click_data):
+    if not click_data or "points" not in click_data:
+        return dash.no_update
+    point = click_data["points"][0]
+    tag = point.get("y")
+    if not tag:
+        return dash.no_update
+    return f"/event_detail?tag={tag}"
+=======
+>>>>>>> origin/main
