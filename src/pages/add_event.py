@@ -1,12 +1,15 @@
 import dash
 from dash import html, dcc, callback, Input, Output, State
 import db
+import pandas as pd
+from typing import Any, cast, TypedDict
 
 dash.register_page(__name__, name="Add Event", path="/add_event")
 
 def layout():
     # Fetch current events to populate the related-event dropdown options
     events = db.get_events()
+    df_events: pd.DataFrame = pd.DataFrame(events)   # <- this is a DataFrame
     event_options = [{"label": f'{ev["name"]} ({ev["tag"]})', "value": ev["tag"]} for ev in events]
     return html.Div([
         html.H2("Add New Event"),
@@ -42,12 +45,12 @@ def layout():
         ], style={"marginBottom": "10px"}),
         html.Div([
             html.Label("Affected By (select events that cause this event):"),
-            dcc.Dropdown(id="input-affected-by", options=event_options, multi=True,
+            dcc.Dropdown(id="input-affected-by", options=cast(Any, event_options),multi=True,
                          placeholder="Select preceding related events")
         ], style={"marginBottom": "10px"}),
         html.Div([
             html.Label("Affects (select events that this event will cause):"),
-            dcc.Dropdown(id="input-affects", options=event_options, multi=True,
+            dcc.Dropdown(id="input-affects", options=cast(Any, event_options), multi=True,
                          placeholder="Select subsequent related events")
         ], style={"marginBottom": "20px"}),
         # Submit button
