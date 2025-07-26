@@ -1,6 +1,6 @@
 # Timeline of the World
 
-This is a small Dash application that displays a timeline of historical events stored in a SQLite database. You can add, edit and link events directly from the UI.
+This is a small Dash application that displays a timeline of historical events stored in a SQLite database. You can add, edit and link events directly from the UI. Clicking a point on the timeline opens a detail page showing the event's information along with links to related events. The detail page also includes a dropdown to jump to any other event.
 
 ## Running the app
 
