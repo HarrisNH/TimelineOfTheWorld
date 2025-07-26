@@ -169,13 +169,12 @@ def delete_event(event_id):
     if tag:
         # Remove the tag from all other rows’ link fields
         for field in ("affects", "affected_by"):
-            cur.execute(f"""
-                UPDATE events
-                SET {field} =
-                    TRIM(REPLACE(REPLACE({field}, ? || ',', ''),
-                                 ',' || ?, ''))
-                WHERE INSTR({field}, ?) > 0
-            """, (tag, tag, tag))
+            # Fetch rows referencing the tag
+            cur.execute(f"SELECT id, {field} FROM events WHERE INSTR({field}, ?) > 0", (tag,))
+            for row in cur.fetchall():
+                parts = [t for t in (row[field] or "").split(',') if t and t != tag]
+                new_val = ",".join(parts)
+                cur.execute(f"UPDATE events SET {field} = ? WHERE id = ?", (new_val, row["id"]))
     conn.commit()
     conn.close()
     

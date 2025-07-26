@@ -1,6 +1,6 @@
 # Timeline of the World
 
-This is a small Dash application that displays a timeline of historical events stored in a SQLite database. You can add, edit and link events directly from the UI. Clicking a point on the timeline opens a detail page showing the event's information along with links to related events. The detail page also includes a dropdown to jump to any other event.
+This is a small Dash application that displays a timeline of historical events stored in a SQLite database. You can add, edit and link events directly from the UI.
 
 ## Running the app
 
@@ -8,6 +8,7 @@ This is a small Dash application that displays a timeline of historical events s
    ```bash
    pip install -r requirements.txt
    ```
+   Patch versions are pinned for reproducible test runs.
 2. (Optional) specify a custom database path via the `EVENTS_DB_FILE` environment variable or the `--db` command line option.
 3. Start the server:
    ```bash

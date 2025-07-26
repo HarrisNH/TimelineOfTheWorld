@@ -126,21 +126,21 @@ def layout():
         html.H2("Timeline View"),
         # Filter controls section
         html.Div([
-            html.Label("Category:", style={"margin-right": "8px"}),
+            html.Label("Category:"),
             dcc.Dropdown(
             id="filter-category",
             options=[{"label": cat, "value": cat} for cat in categories],
             value=categories,  # default select all categories
             multi=True
         ),
-        html.Label(" Country:", style={"margin-left": "20px", "margin-right": "8px"}),
+        html.Label(" Country:", className="filter-spacing"),
         dcc.Dropdown(
             id="filter-country",
             options=[{"label": c, "value": c} for c in countries],
             value=countries,  # default select all countries
             multi=True
         ),
-        html.Label(" Date Range:", style={"margin-left": "20px", "margin-right": "8px"}),
+        html.Label(" Date Range:", className="filter-spacing"),
         dcc.DatePickerRange(
             id="filter-date",
             start_date=min_date,
@@ -149,14 +149,14 @@ def layout():
             max_date_allowed=max_date,
             display_format="YYYY-MM-DD"
         ),
-        html.Label(" ", style={"margin-left": "20px"}),  # spacer
+        html.Label(" ", className="filter-spacing"),  # spacer
         dcc.Checklist(
             id="toggle-arrows",
             options=[{"label": "Show causal links", "value": "show"}],
             value=[],  # unchecked by default (no arrows)
-            style={"display": "inline-block", "margin-left": "10px"}
+            className="checklist"
         )
-    ], style={"marginBottom": "20px", "display": "flex", "flexWrap": "wrap", "alignItems": "center"}),
+    ], className="filter-controls"),
     # Timeline graph component
     dcc.Graph(id="timeline-graph", figure=initial_fig),
     # hidden location for navigating to event detail when a point is clicked
