@@ -9,14 +9,15 @@ import db
 app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True)
 
 app.layout = dmc.MantineProvider(
+    theme={"colorScheme": "light", "primaryColor": "blue", "fontFamily": "Arial, sans-serif"},
     children=[
         html.H1("Multi-Page Timeline Application"),
-        html.Div([
-            dcc.Link(page["name"], href=page["relative_path"], style={"margin": "10px"})
-            for page in dash.page_registry.values()
-        ]),
-        dash.page_container
-    ]
+        html.Div(
+            [dcc.Link(page["name"], href=page["relative_path"], className="nav-link")
+             for page in dash.page_registry.values()],
+        ),
+        dash.page_container,
+    ],
 )
 
 if __name__ == "__main__":

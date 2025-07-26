@@ -16,13 +16,13 @@ def layout():
     ]
     return html.Div([
         html.H2("Edit / Delete Existing Event"),
-        dcc.Dropdown(id="event-picker", options = cast(Any, event_options),
-                     placeholder="Select an event to edit"),
+        dcc.Dropdown(id="event-picker", options=cast(Any, event_options),
+                     placeholder="Select an event to edit", className="full-width"),
         html.Br(),
         html.Div(id="edit-form-container"),      # populated once an event is chosen
         dcc.Location(id="go-back", href="", refresh=False),
-        html.Div(id="edit-msg", style={"marginTop": "10px", "color": "red"})
-    ], style={"marginLeft": "40px", "marginRight": "40px", "maxWidth": "1200px"})
+        html.Div(id="edit-msg", className="message")
+    ], className="page-container")
 
 # --- populate the form when an event is picked ------------------------------
 @callback(Output("edit-form-container", "children"),
@@ -37,11 +37,11 @@ def load_event_form(selected_id):
     topics = events_all_df["topic"].unique().tolist()
     countries = events_all_df["country"].unique().tolist()
     return html.Div([
-        html.Label("Name:"),  dcc.Input(id="e-name", value=ev["name"], style={"width": "100%"}),
+        html.Label("Name:"),  dcc.Input(id="e-name", value=ev["name"], className="full-width"),
         html.Br(),
         html.Label("Description:"),
         dcc.Textarea(id="e-desc", value=ev["description"] or "",
-                     style={"width": "100%", "height": "80px"}),
+                     className="textarea"),
         html.Br(),
         html.Label("Start Date:"), dcc.DatePickerSingle(id="e-start", date=ev["date_start"]),
         html.Label("End Date:"),  dcc.DatePickerSingle(id="e-end",   date=ev["date_end"]),
@@ -59,7 +59,7 @@ def load_event_form(selected_id):
                         clearable=True,
                         maxTags=1,
                     ),
-                ], style={"flex": 1}),
+                ], className="flex-1"),
 
                 html.Div([
                     html.Label("Topic:"),
@@ -71,7 +71,7 @@ def load_event_form(selected_id):
                         clearable=True,
                         maxTags=1,
                         ),
-                ], style={"flex": 1}),
+                ], className="flex-1"),
 
                 html.Div([
                     html.Label("Country:"),
@@ -83,14 +83,9 @@ def load_event_form(selected_id):
                         clearable=True,
                         maxTags=1,
                         ),
-                ], style={"flex": 1}),
+                ], className="flex-1"),
             ],
-            style={
-                "display": "flex",
-                "gap": "12px",
-                "alignItems": "flex-end",
-                "marginBottom": "10px",
-            },
+            className="flex-row",
         ),
         html.Div(
             [
@@ -102,9 +97,9 @@ def load_event_form(selected_id):
                         value=ev["affected_by"],
                         multi=True,
                         placeholder="Select events that caused this event",
-                        style={"width": "100%"},
+                        className="full-width",
                     ),
-                ], style={"flex": 1}),
+                ], className="flex-1"),
 
                 html.Div([
                     html.Label("Affects:"),
@@ -114,20 +109,15 @@ def load_event_form(selected_id):
                         value=ev["affects"],
                         multi=True,
                         placeholder="Select events that this event caused",
-                        style={"width": "100%"},
+                        className="full-width",
                     ),
-                ], style={"flex": 1}),
+                ], className="flex-1"),
             ],
-            style={
-                "display": "flex",
-                "gap": "12px",
-                "marginBottom": "10px",
-            },
+            className="flex-row",
         ),
         html.Br(), html.Br(),
         html.Button("Save Changes", id="save-btn", n_clicks=0),
-        html.Button("Delete", id="del-btn", n_clicks=0,
-                    style={"marginLeft": "20px", "background": "#c23", "color": "white"}),
+        html.Button("Delete", id="del-btn", n_clicks=0, className="delete ml-20"),
     ])
 
 # --- handle save / delete ----------------------------------------------------
