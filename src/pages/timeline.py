@@ -3,6 +3,7 @@ from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+from flags import get_flag
 import dash_mantine_components as dmc 
 import db
 # 4) add one scatter trace per category for instant events
@@ -62,19 +63,22 @@ def make_timeline_figure(events, show_arrows=False):
         style = line_styles.get(tr.name, "solid")
         tr.update(line=dict(dash=style))
 
-    # Add small flag annotations based on country
-    flag_emojis = {"USA": "🇺🇸", "Germany": "🇩🇪", "Global": "🌐"}
+    # Add small flag annotations centered on each event bar
+    def mid_point(start: str, end: str | None) -> datetime:
+        start_dt = datetime.fromisoformat(start)
+        end_dt = datetime.fromisoformat(end) if end else start_dt
+        return start_dt + (end_dt - start_dt) / 2
+
     for ev in events_sorted:
-        flag = flag_emojis.get(ev["country"], "")
+        flag = get_flag(ev["country"])
         if flag:
             fig.add_annotation(
-                x=ev["date_start"],
+                x=mid_point(ev["date_start"], ev["date_end"]),
                 y=ev["tag"],
                 text=flag,
                 showarrow=False,
-                xanchor="right",
+                xanchor="center",
                 yanchor="middle",
-                xshift=-8,
             )
     points = [e for e in events if not e["date_end"]]
     # 3) grab the colour that Plotly just used for every category
