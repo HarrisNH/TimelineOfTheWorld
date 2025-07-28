@@ -138,7 +138,7 @@ def load_event_form(selected_id):
 )
 def commit_change(n_save, n_del, ev_id, name, desc, start, end, category, topic, country):
     ctx = dash.callback_context
-    if not ctx.triggered or not ev_id:
+    if not ctx.triggered or not ev_id or (n_save < 1 and n_del < 1):
         return dash.no_update, dash.no_update
     btn_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if btn_id == "del-btn":
