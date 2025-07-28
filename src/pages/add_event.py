@@ -3,31 +3,54 @@ from dash import html, dcc, callback, Input, Output, State
 import db
 import pandas as pd
 from typing import Any, cast, TypedDict
+import dash_mantine_components as dmc
 
 dash.register_page(__name__, name="Add Event", path="/add_event")
 
 def layout():
     # Fetch current events to populate the related-event dropdown options
     events = db.get_events()
-    df_events: pd.DataFrame = pd.DataFrame(events)   # <- this is a DataFrame
+    events_all_df: pd.DataFrame = pd.DataFrame(events)   # <- this is a DataFrame
+    categories = events_all_df["category"].unique().tolist()
+    topics = events_all_df["topic"].unique().tolist()
+    countries = events_all_df["country"].unique().tolist()
     event_options = [{"label": f'{ev["name"]} ({ev["tag"]})', "value": ev["tag"]} for ev in events]
+    
     return html.Div([
         html.H2("Add New Event"),
         html.Div([
-            html.Label("Category:*"),
-            dcc.Input(id="input-category", type="text", placeholder="e.g. Politics", className="full-width")
+                    html.Label("Category:"),
+                    dmc.TagsInput(
+                        id="input-category",
+                        data=categories,
+                        placeholder="Pick existing or type a new one",
+                        clearable=True,
+                        maxTags=1,
+                    ),
         ], className="form-group"),
         html.Div([
-            html.Label("Topic:*"),
-            dcc.Input(id="input-topic", type="text", placeholder="e.g. War", className="full-width")
+                    html.Label("Topic:"),
+                    dmc.TagsInput(
+                        id="input-topic",
+                        data=topics,
+                        placeholder="Pick existing or type a new one",
+                        clearable=True,
+                        maxTags=1,
+                    ),
         ], className="form-group"),
         html.Div([
             html.Label("Name:*"),
             dcc.Input(id="input-name", type="text", placeholder="e.g. World War III", className="full-width")
         ], className="form-group"),
         html.Div([
-            html.Label("Country:"),
-            dcc.Input(id="input-country", type="text", placeholder="e.g. USA", className="full-width")
+                    html.Label("Country:"),
+                    dmc.TagsInput(
+                        id="input-country",
+                        data=categories,
+                        placeholder="Pick existing or type a new one",
+                        clearable=True,
+                        maxTags=1,
+                    ),
         ], className="form-group"),
         html.Div([
             html.Label("Start Date:*"),
