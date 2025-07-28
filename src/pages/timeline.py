@@ -56,6 +56,26 @@ def make_timeline_figure(events, show_arrows=False):
         hover_data={"category": True, "topic": True, "country": True,
                     "date_start": True, "date_end": True, "description": True}
     )
+    # Style bars differently for each category
+    line_styles = {"Politics": "solid", "Science": "dot", "Culture": "dash"}
+    for tr in fig.data:
+        style = line_styles.get(tr.name, "solid")
+        tr.update(line=dict(dash=style))
+
+    # Add small flag annotations based on country
+    flag_emojis = {"USA": "🇺🇸", "Germany": "🇩🇪", "Global": "🌐"}
+    for ev in events_sorted:
+        flag = flag_emojis.get(ev["country"], "")
+        if flag:
+            fig.add_annotation(
+                x=ev["date_start"],
+                y=ev["tag"],
+                text=flag,
+                showarrow=False,
+                xanchor="right",
+                yanchor="middle",
+                xshift=-8,
+            )
     points = [e for e in events if not e["date_end"]]
     # 3) grab the colour that Plotly just used for every category
     cat_colour = {tr.name: tr.marker.color for tr in fig.data}
@@ -79,7 +99,16 @@ def make_timeline_figure(events, show_arrows=False):
 
     # Set custom y-axis order (to keep categories grouped and in sorted order)
     ordered_tags = [ev["tag"] for ev in events_sorted]
-    fig.update_yaxes(categoryorder="array", categoryarray=ordered_tags, autorange="reversed")
+    tick_text = [ev["name"] for ev in events_sorted]
+    fig.update_yaxes(
+        categoryorder="array",
+        categoryarray=ordered_tags,
+        autorange="reversed",
+        tickmode="array",
+        tickvals=ordered_tags,
+        ticktext=tick_text,
+    )
+    fig.update_layout(yaxis_title="", margin=dict(l=100, r=20, t=40, b=40))
     # Add a range slider for easy horizontal panning/zooming
     fig.update_xaxes(rangeslider_visible=True)
     # Add arrows for causal links if toggled on
@@ -199,25 +228,17 @@ def update_timeline(selected_categories, selected_countries, apply_filters, arro
 
 
 @callback(
-    Output("event-detail-nav", "pathname"),
-    Output("event-detail-nav", "search"),
+    Output("event-detail-nav", "href"),
     Input("timeline-graph", "clickData"),
     prevent_initial_call=True,
 )
 def go_to_detail(click_data):
+    """Navigate to the event detail page when a bar is clicked."""
     if not click_data or "points" not in click_data:
-        return dash.no_update, dash.no_update
+        return dash.no_update
     point = click_data["points"][0]
     tag = point.get("y")
     if not tag:
-        return dash.no_update, dash.no_update
-    return "/event_detail", f"?tag={tag}"
-
-@callback(
-    Output("collapse-simple", "opened"),
-    Input("collapse-btn", "n_clicks"),
-)
-def update(n):
-    if n % 2 == 0:
-        return False
-    return True
+        return dash.no_update
+    # Returning an href triggers a client side navigation
+    return f"/event_detail?tag={tag}"
