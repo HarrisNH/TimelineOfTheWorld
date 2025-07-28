@@ -54,7 +54,7 @@ def layout(tag=None, **kwargs):
 
 
 @callback(
-    Output("event-detail-nav", "href"),
+    Output("event-detail-nav", "href", allow_duplicate=True),
     Input("event-detail-select", "value"),
     prevent_initial_call=True,
 )

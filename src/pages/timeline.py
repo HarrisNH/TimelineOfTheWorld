@@ -218,7 +218,7 @@ def update_timeline(selected_categories, selected_countries, start_date, end_dat
 
 
 @callback(
-    Output("event-detail-nav", "href"),
+    Output("event-detail-nav", "href", allow_duplicate=True),
     Input("timeline-graph", "clickData"),
     prevent_initial_call=True,
 )
