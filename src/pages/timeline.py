@@ -11,6 +11,18 @@ from collections import defaultdict
 
 dash.register_page(__name__, path="/", name="Timeline")
 
+CATEGORY_PATTERN = {
+    "Politics": "-", # dots
+    "Science": "+", # plus
+    "Culture": "x", # cross
+    "War": "\\",
+    # Other options:
+    # "-" (horizontal lines)
+    # "|" (vertical lines) 
+    # "/" (diagonal lines)
+    # "\\" (diagonal lines)
+    # "*" (asterisk)
+}
 # Helper function to filter events based on selected criteria
 def filter_events(events, categories=None, countries=None, start_date=None, end_date=None):
     filtered = []
@@ -60,8 +72,10 @@ def make_timeline_figure(events, show_arrows=False):
     # Style bars differently for each category
     line_styles = {"Politics": "solid", "Science": "dot", "Culture": "dash"}
     for tr in fig.data:
-        style = line_styles.get(tr.name, "solid")
-        tr.update(line=dict(dash=style))
+        pattern = CATEGORY_PATTERN.get(tr.name, "")
+        if pattern:
+            tr.marker.pattern.shape = pattern
+            
 
     # Add small flag annotations centered on each event bar
     def mid_point(start: str, end: str | None) -> datetime:
@@ -69,6 +83,8 @@ def make_timeline_figure(events, show_arrows=False):
         end_dt = datetime.fromisoformat(end) if end else start_dt
         return start_dt + (end_dt - start_dt) / 2
 
+    # Add small flag annotations based on country
+    flag_emojis = {"USA": "🇺🇸", "Germany": "🇩🇪", "Global": "🌐", "Israel": ""}
     for ev in events_sorted:
         flag = get_flag(ev["country"])
         if flag:
@@ -202,7 +218,7 @@ def layout():
     # Timeline graph component
     dcc.Graph(id="timeline-graph", figure=initial_fig),
     # hidden location for navigating to event detail when a point is clicked
-    dcc.Location(id="event-detail-nav", href="", refresh=False)
+    dcc.Location(id="event-detail-nav", href="", refresh=False),
 ], className="page-container")
 
 # Callback to update the timeline graph when filters or arrow toggle change
@@ -232,7 +248,7 @@ def update_timeline(selected_categories, selected_countries, apply_filters, arro
 
 
 @callback(
-    Output("event-detail-nav", "href"),
+    Output("event-detail-nav", "href", allow_duplicate=True),
     Input("timeline-graph", "clickData"),
     prevent_initial_call=True,
 )
