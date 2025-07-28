@@ -3,6 +3,7 @@ from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+import dash_mantine_components as dmc 
 import db
 # 4) add one scatter trace per category for instant events
 from collections import defaultdict
@@ -140,15 +141,23 @@ def layout():
             value=countries,  # default select all countries
             multi=True
         ),
-        html.Label(" Date Range:", className="filter-spacing"),
-        dcc.DatePickerRange(
-            id="filter-date",
-            start_date=min_date,
-            end_date=max_date,
-            min_date_allowed=min_date,
-            max_date_allowed=max_date,
-            display_format="YYYY-MM-DD"
-        ),
+        dmc.Box([
+            dmc.Button("Choose dates", id="collapse-btn", n_clicks=0),
+            dmc.Collapse(
+                dmc.Group([
+                    dmc.Text("Date Range:"),
+                    dmc.TextInput(id="filter-date-start", placeholder="YYYY-MM-DD", value=min_date),
+                    dmc.TextInput(id="filter-date-end", placeholder="YYYY-MM-DD", value=max_date),
+                    dmc.Button(
+                            "Apply Filters",
+                            id="apply-filters",
+                            variant="filled",
+                            color="blue",),
+                ], align="center"),
+                opened=False, id="collapse-simple",  transitionDuration=1000,
+        transitionTimingFunction="linear",),
+                
+        ]),
         html.Label(" ", className="filter-spacing"),  # spacer
         dcc.Checklist(
             id="toggle-arrows",
@@ -168,11 +177,12 @@ def layout():
     Output("timeline-graph", "figure"),
     Input("filter-category", "value"),
     Input("filter-country", "value"),
-    Input("filter-date", "start_date"),
-    Input("filter-date", "end_date"),
-    Input("toggle-arrows", "value")
+    Input("apply-filters", "n_clicks"),
+    Input("toggle-arrows", "value"),
+    State("filter-date-start", "value"),
+    State("filter-date-end", "value"),
 )
-def update_timeline(selected_categories, selected_countries, start_date, end_date, arrows_toggle):
+def update_timeline(selected_categories, selected_countries, apply_filters, arrows_toggle, start_date, end_date, ):
     # Load the latest events (including any newly added events)
     events = db.get_events()
     # Apply filters
@@ -202,3 +212,12 @@ def go_to_detail(click_data):
     if not tag:
         return dash.no_update, dash.no_update
     return "/event_detail", f"?tag={tag}"
+
+@callback(
+    Output("collapse-simple", "opened"),
+    Input("collapse-btn", "n_clicks"),
+)
+def update(n):
+    if n % 2 == 0:
+        return False
+    return True

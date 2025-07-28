@@ -107,6 +107,9 @@ def submit_new_event(n_clicks, category, topic, name, country, date_start, date_
         return dash.no_update, dash.no_update
     # Validate required fields
     missing = []
+    category = category[0] if isinstance(category, list) else category
+    topic = topic[0] if isinstance(topic, list) else topic
+    country = country[0] if isinstance(country, list) else country
     if not category or not category.strip():
         missing.append("Category")
     if not topic or not topic.strip():
@@ -151,4 +154,5 @@ def submit_new_event(n_clicks, category, topic, name, country, date_start, date_
     for tag in affects_tags:
         db.add_relation_tag(tag, "affected_by", new_tag)
     # Redirect to the timeline page upon successful submission
-    return "/", ""
+
+    return "/", "Insertion successful! You can now view the new event in the timeline."
