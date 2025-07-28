@@ -46,7 +46,7 @@ def layout():
                     html.Label("Country:"),
                     dmc.TagsInput(
                         id="input-country",
-                        data=categories,
+                        data=countries,
                         placeholder="Pick existing or type a new one",
                         clearable=True,
                         maxTags=1,
