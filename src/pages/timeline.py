@@ -218,7 +218,8 @@ def layout():
     # Timeline graph component
     dcc.Graph(id="timeline-graph", figure=initial_fig),
     # hidden location for navigating to event detail when a point is clicked
-    dcc.Location(id="event-detail-nav", href="", refresh=False),
+    # use callback-nav refresh mode so the new page loads without a full refresh
+    dcc.Location(id="event-detail-nav", href="", refresh="callback-nav"),
 ], className="page-container")
 
 # Callback to update the timeline graph when filters or arrow toggle change

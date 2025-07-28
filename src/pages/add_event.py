@@ -82,7 +82,8 @@ def layout():
         # Submit button
         html.Button("Add Event", id="submit-event", n_clicks=0),
         # Hidden location component for redirecting after submission
-        dcc.Location(id="redirect-page", href="", refresh=False),
+        # callback-nav refresh triggers page navigation without reload
+        dcc.Location(id="redirect-page", href="", refresh="callback-nav"),
         # Message area for errors or confirmations
         html.Div(id="form-message", className="message")
     ], className="page-container")

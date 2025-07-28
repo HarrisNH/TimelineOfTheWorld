@@ -21,7 +21,8 @@ def layout(tag=None, **kwargs):
                 value=tag,
                 clearable=False,
             ),
-            dcc.Location(id="event-detail-nav", refresh=True),
+            # allow navigating between event details without a page reload
+            dcc.Location(id="event-detail-nav", refresh="callback-nav"),
         ],
         style={"marginBottom": "20px", "maxWidth": "400px"},
     )
