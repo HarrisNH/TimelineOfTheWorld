@@ -20,7 +20,8 @@ def layout():
                      placeholder="Select an event to edit", className="full-width"),
         html.Br(),
         html.Div(id="edit-form-container"),      # populated once an event is chosen
-        dcc.Location(id="go-back", href="", refresh=False),
+        # use callback-nav so navigating back does not reload the entire app
+        dcc.Location(id="go-back", href="", refresh="callback-nav"),
         html.Div(id="edit-msg", className="message")
     ], className="page-container")
 
