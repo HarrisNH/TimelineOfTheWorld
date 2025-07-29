@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 from flags import get_flag
-import dash_mantine_components as dmc 
+import dash_mantine_components as dmc
 import db
 # 4) add one scatter trace per category for instant events
 from collections import defaultdict
@@ -51,6 +51,54 @@ def filter_events(events, categories=None, countries=None, start_date=None, end_
         filtered.append(ev)
     return filtered
 
+def assign_rows(events):
+    """Assign each event a row identifier so that events within the same
+    ``(category, country, topic)`` group that do not overlap in time share a row.
+
+    Returns two lists: the ordered row identifiers and the labels for display."""
+
+    grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for ev in events:
+        key = (ev["category"], ev["country"])
+        grouped[key].append(ev)
+
+    row_order: list[str] = []
+    row_labels: list[str] = []
+
+    for key in sorted(grouped):
+        label = "<br>".join(key)
+        evs = sorted(grouped[key], key=lambda e: e["date_start"])
+
+        # ``slots`` holds the end time of the last event occupying each slot
+        slots: list[datetime] = []
+
+        for ev in evs:
+            start_dt = datetime.fromisoformat(ev["date_start"])
+            end_dt = (
+                datetime.fromisoformat(ev["date_end"])
+                if ev["date_end"] else start_dt
+            )
+
+            slot_index: int | None = None
+            for idx, last_end in enumerate(slots):
+                if start_dt >= last_end:
+                    slot_index = idx
+                    slots[idx] = end_dt
+                    break
+
+            if slot_index is None:
+                slot_index = len(slots)
+                slots.append(end_dt)
+
+            row_id = f"{key[0]}|{key[1]}_{slot_index}"
+            ev["row_id"] = row_id
+
+            if row_id not in row_order:
+                row_order.append(row_id)
+                row_labels.append(label)
+
+    return row_order, row_labels
+
 # Helper function to create a Plotly timeline figure (adds arrows if show_arrows=True)
 def make_timeline_figure(events, show_arrows=False):
     if not events:
@@ -60,14 +108,16 @@ def make_timeline_figure(events, show_arrows=False):
                            x=0.5, y=0.5, showarrow=False, font=dict(size=16))
         return fig
     # Sort events by category and start date for logical grouping
-    events_sorted = sorted(events, key=lambda e: (e["category"], e["date_start"]))
-    # Create the timeline chart using Plotly Express
+    row_order, row_labels = assign_rows(events)
+    events_sorted = sorted(events, key=lambda e: (row_order.index(e["row_id"]), e["date_start"]))    
+
     fig = px.timeline(
         events_sorted,
-        x_start="date_start", x_end="date_end", y="tag", color="category",
+        x_start="date_start", x_end="date_end", y="row_id", color="category",
         hover_name="name",
         hover_data={"category": True, "topic": True, "country": True,
-                    "date_start": True, "date_end": True, "description": True}
+                    "date_start": True, "date_end": True, "description": True},
+        custom_data=["tag"]
     )
     # Style bars differently for each category
     line_styles = {"Politics": "solid", "Science": "dot", "Culture": "dash"}
@@ -75,7 +125,7 @@ def make_timeline_figure(events, show_arrows=False):
         pattern = CATEGORY_PATTERN.get(tr.name, "")
         if pattern:
             tr.marker.pattern.shape = pattern
-            
+
 
     # Add small flag annotations centered on each event bar
     def mid_point(start: str, end: str | None) -> datetime:
@@ -90,7 +140,7 @@ def make_timeline_figure(events, show_arrows=False):
         if flag:
             fig.add_annotation(
                 x=mid_point(ev["date_start"], ev["date_end"]),
-                y=ev["tag"],
+                y=ev["row_id"],
                 text=flag,
                 showarrow=False,
                 xanchor="center",
@@ -108,7 +158,7 @@ def make_timeline_figure(events, show_arrows=False):
     for cat, ev_list in bucket.items():
         fig.add_scatter(
             x=[e["date_start"] for e in ev_list],
-            y=[e["tag"]        for e in ev_list],
+            y=[e["row_id"]        for e in ev_list],
             mode="markers",
             marker_symbol="diamond",
             marker_size=10,
@@ -118,23 +168,24 @@ def make_timeline_figure(events, show_arrows=False):
         )
 
     # Set custom y-axis order (to keep categories grouped and in sorted order)
-    ordered_tags = [ev["tag"] for ev in events_sorted]
+    ordered_tags = row_order
     tick_text = [ev["name"] for ev in events_sorted]
     fig.update_yaxes(
         categoryorder="array",
-        categoryarray=ordered_tags,
+        categoryarray=row_order,
         autorange="reversed",
         tickmode="array",
-        tickvals=ordered_tags,
-        ticktext=tick_text,
+        tickvals=row_order,
+        ticktext=row_labels,
     )
     fig.update_layout(yaxis_title="", margin=dict(l=100, r=20, t=40, b=40))
     # Add a range slider for easy horizontal panning/zooming
     fig.update_xaxes(rangeslider_visible=True)
     # Add arrows for causal links if toggled on
     if show_arrows:
+        tag_to_row = {e["tag"]: e["row_id"] for e in events}
         for ev in events:
-            src_tag = ev["tag"]
+            src_row = tag_to_row.get(ev["tag"])
             if ev["affects"]:
                 # For each target tag that this event affects
                 targets = [t.strip() for t in ev["affects"].split(",") if t.strip()]
@@ -151,14 +202,14 @@ def make_timeline_figure(events, show_arrows=False):
                         # If source extends beyond target start, align at target start to avoid backward arrow
                         x_tail = target_start_date
                     # Draw horizontal segment (no arrowhead) if there's a gap between source end and target start
-                    if x_tail < target_start_date:
-                        fig.add_annotation(x=target_start_date, y=src_tag,
-                                           ax=x_tail, ay=src_tag,
+                    if x_tail < target_start_date and src_row is not None:
+                        fig.add_annotation(x=target_start_date, y=src_row,
+                                           ax=x_tail, ay=src_row,
                                            xref="x", yref="y", axref="x", ayref="y",
                                            showarrow=True, arrowhead=0, arrowwidth=1, arrowcolor="black", text="")
                     # Draw vertical arrow segment from source to target at the target start time
-                    fig.add_annotation(x=target_start_date, y=tgt_tag,
-                                       ax=target_start_date, ay=src_tag,
+                    fig.add_annotation(x=target_start_date, y=tag_to_row.get(tgt_tag),
+                                       ax=target_start_date, ay=src_row,
                                        xref="x", yref="y", axref="x", ayref="y",
                                        showarrow=True, arrowhead=3, arrowwidth=1, arrowcolor="black", text="")
     return fig
@@ -258,7 +309,8 @@ def go_to_detail(click_data):
     if not click_data or "points" not in click_data:
         return dash.no_update
     point = click_data["points"][0]
-    tag = point.get("y")
+    custom = point.get("customdata")
+    tag = custom[0] if custom else None
     if not tag:
         return dash.no_update
     # Returning an href triggers a client side navigation
